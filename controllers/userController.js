@@ -102,7 +102,7 @@ async function followUser (req, res) {
       return res.status(400).json({ error: 'You cannot follow yourself' })
     }
 
-    const isFollowing = currentUser.followers.includes(id)
+    const isFollowing = currentUser.following.includes(userToModify._id)
 
     if (isFollowing) {
       // unfollowing
@@ -113,6 +113,12 @@ async function followUser (req, res) {
       await User.findByIdAndUpdate(userToModify._id, {
         $pull: { followers: currentUser._id }
       })
+
+      res.status(200).json({
+        message: `You are no longer following ${userToModify.username}`,
+        error: null,
+        data: null
+      })
     } else {
       // following
       await User.findByIdAndUpdate(currentUser._id, {
@@ -121,6 +127,12 @@ async function followUser (req, res) {
 
       await User.findByIdAndUpdate(userToModify._id, {
         $push: { followers: currentUser._id }
+      })
+
+      res.status(200).json({
+        message: `You are now following ${userToModify.username}`,
+        error: null,
+        data: null
       })
     }
   } catch (error) {
