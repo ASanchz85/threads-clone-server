@@ -5,6 +5,7 @@ import dbConnection from './db/config/dbConnection.js'
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
 import userRouter from './routes/userRoutes.js'
+import postRouter from './routes/postRoutes.js'
 
 // Configurations
 configDotenv()
@@ -28,6 +29,7 @@ app.use(cookieParser())
 
 // Routes
 app.use('/api/users', userRouter)
+app.use('/api/posts', postRouter)
 
 // Server
 app.listen(port, () => {
