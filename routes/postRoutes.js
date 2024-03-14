@@ -2,6 +2,7 @@ import express from 'express'
 import {
   createPost,
   deletePost,
+  getFeedPosts,
   getPosts,
   likePost,
   replyPost
@@ -10,6 +11,7 @@ import guardRoute from '../services/guardRoute.js'
 
 const router = express.Router()
 
+router.get('/feed', guardRoute, getFeedPosts)
 router.get('/:id', getPosts)
 router.post('/create', guardRoute, createPost)
 router.delete('/:id', guardRoute, deletePost)
