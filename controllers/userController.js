@@ -1,6 +1,7 @@
 import User from '../db/models/userModel.js'
 import bcrypt from 'bcryptjs'
 import generateToken from '../utils/generateToken.js'
+import filterPass from '../utils/filterPass.js'
 
 async function signUpUser (req, res) {
   try {
@@ -98,7 +99,7 @@ async function followUser (req, res) {
       return res.status(404).json({ error: 'User not found' })
     }
 
-    if (id === req.user._id) {
+    if (id === req.user._id.toString()) {
       return res.status(400).json({ error: 'You cannot follow yourself' })
     }
 
@@ -141,4 +142,86 @@ async function followUser (req, res) {
   }
 }
 
-export { signUpUser, loginUser, logoutUser, followUser }
+async function updateUser (req, res) {
+  try {
+    const { name, email, username, password, bio, profilePic } = req.body
+    const userID = req.user._id
+
+    let user = await User.findById(userID)
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' })
+    }
+
+    if (userID.toString() !== req.params.id) {
+      return res
+        .status(403)
+        .json({ error: "You can not update other user's profile" })
+    }
+
+    if (password) {
+      const salt = await bcrypt.genSalt(10)
+      const hashedPassword = await bcrypt.hash(password, salt)
+
+      user.password = hashedPassword
+    }
+
+    if (username) {
+      const usernameExists = await User.findOne({ username })
+      if (usernameExists) {
+        return res.status(400).json({ error: 'Username already exists' })
+      } else {
+        user.username = username
+      }
+    }
+
+    user.name = name || user.name
+    user.email = email || user.email
+    user.bio = bio || user.bio
+    user.profilePic = profilePic || user.profilePic
+
+    user = await user.save()
+    user = filterPass(user)
+
+    res.status(200).json({
+      message: 'User updated successfully',
+      error: null,
+      data: {
+        ...user
+      }
+    })
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+    console.log('Error in updateUser', error)
+  }
+}
+
+async function getUserProfile (req, res) {
+  try {
+    const { username } = req.params
+    const user = await User.findOne({ username })
+      .select('-password')
+      .select('-updatedAt')
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' })
+    }
+
+    res.status(200).json({
+      message: 'User profile retrieved successfully',
+      error: null,
+      data: user
+    })
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+    console.log('Error in getUserProfile', error)
+  }
+}
+
+export {
+  signUpUser,
+  loginUser,
+  logoutUser,
+  followUser,
+  updateUser,
+  getUserProfile
+}

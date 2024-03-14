@@ -12,6 +12,7 @@ const app = express()
 const port = process.env.PORT || 3000
 const logger = morgan('dev')
 dbConnection()
+// !missing helmet
 
 // Middlewares
 app.use(logger)
@@ -28,7 +29,7 @@ app.use(cookieParser())
 // Routes
 app.use('/api/users', userRouter)
 
-// Listen
+// Server
 app.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`)
 })
