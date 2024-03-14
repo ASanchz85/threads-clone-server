@@ -121,4 +121,40 @@ async function likePost (req, res) {
   }
 }
 
-export { createPost, getPosts, deletePost, likePost }
+async function replyPost (req, res) {
+  try {
+    const { id: postId } = req.params
+    const { _id: userId, username, profilePic } = req.user
+    const { text } = req.body
+    if (!text) {
+      return res.status(400).json({ error: 'Text is required' })
+    }
+
+    const post = await Post.findById(postId)
+    if (!post) {
+      return res.status(404).json({ error: 'Post not found' })
+    }
+
+    const reply = {
+      text,
+      userId,
+      username,
+      profilePic
+    }
+
+    await Post.findByIdAndUpdate(postId, {
+      $push: { replies: reply }
+    })
+
+    res.status(200).json({
+      message: 'Post replied successfully',
+      error: null,
+      data: { postId, reply }
+    })
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+    console.log('Error in replyPost', error)
+  }
+}
+
+export { createPost, getPosts, deletePost, likePost, replyPost }
