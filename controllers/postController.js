@@ -56,4 +56,69 @@ async function createPost (req, res) {
   }
 }
 
-export { createPost, getPosts }
+async function deletePost (req, res) {
+  try {
+    const { id } = req.params
+    const post = await Post.findById(id)
+    if (!post) {
+      return res.status(404).json({ error: 'Post not found' })
+    }
+
+    if (post.postedBy.toString() !== req.user._id.toString()) {
+      return res.status(401).json({ error: 'Unauthorized' })
+    }
+
+    await Post.findByIdAndDelete(id)
+
+    res.status(200).json({
+      message: 'Post deleted successfully',
+      error: null
+    })
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+    console.log('Error in deletePost', error)
+  }
+}
+
+async function likePost (req, res) {
+  try {
+    const { id: postId } = req.params
+    const { _id: userId } = req.user
+    const post = await Post.findById(postId)
+    if (!post) {
+      return res.status(404).json({ error: 'Post not found' })
+    }
+
+    if (post.postedBy.toString() === userId.toString()) {
+      return res.status(400).json({ error: 'Cannot like your own post' })
+    }
+
+    const isUserLiked = post.likes.includes(userId)
+    if (isUserLiked) {
+      // unlike
+      await Post.findByIdAndUpdate(postId, {
+        $pull: { likes: userId }
+      })
+      return res.status(200).json({
+        message: 'Post unliked successfully',
+        error: null,
+        data: { postId, userId }
+      })
+    } else {
+      // like
+      await Post.findByIdAndUpdate(postId, {
+        $push: { likes: userId }
+      })
+      return res.status(200).json({
+        message: 'Post liked successfully',
+        error: null,
+        data: { postId, userId }
+      })
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+    console.log('Error in likePost', error)
+  }
+}
+
+export { createPost, getPosts, deletePost, likePost }
