@@ -37,7 +37,9 @@ async function signUpUser (req, res) {
           _id: newUser._id,
           name: newUser.name,
           username: newUser.username,
-          email: newUser.email
+          email: newUser.email,
+          bio: user.bio,
+          profilePic: user.profilePic
         }
       })
     }
@@ -67,7 +69,9 @@ async function loginUser (req, res) {
         _id: user._id,
         username: user.username,
         email: user.email,
-        name: user.name
+        name: user.name,
+        bio: user.bio,
+        profilePic: user.profilePic
       }
     })
   } catch (error) {
