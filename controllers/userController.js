@@ -65,7 +65,9 @@ async function loginUser (req, res) {
       error: null,
       data: {
         _id: user._id,
-        username: user.username
+        username: user.username,
+        email: user.email,
+        name: user.name
       }
     })
   } catch (error) {
